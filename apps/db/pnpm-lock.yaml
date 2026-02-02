@@ -12,6 +12,9 @@ importers:
         specifier: ^7.3.0
         version: 7.3.0(prisma@7.3.0(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(typescript@5.9.3)
     devDependencies:
+      '@types/node':
+        specifier: ^25.2.0
+        version: 25.2.0
       prisma:
         specifier: ^7.0.0
         version: 7.3.0(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
@@ -111,6 +114,9 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
+
+  '@types/node@25.2.0':
+    resolution: {integrity: sha512-DZ8VwRFUNzuqJ5khrvwMXHmvPe+zGayJhr2CDNiKB1WBE1ST8Djl00D0IC4vvNmHMdj6DlbYRIaFE7WHjlDl5w==}
 
   '@types/react@19.2.10':
     resolution: {integrity: sha512-WPigyYuGhgZ/cTPRXB2EwUw+XvsRA3GqHlsP4qteqrnnjDrApbS7MxcGr/hke5iUoeB7E/gQtrs9I37zAJ0Vjw==}
@@ -365,6 +371,9 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  undici-types@7.16.0:
+    resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
+
   valibot@1.2.0:
     resolution: {integrity: sha512-mm1rxUsmOxzrwnX5arGS+U4T25RdvpPjPN4yR0u9pUBov9+zGVtO84tif1eY4r6zWxVxu3KzIyknJy3rxfRZZg==}
     peerDependencies:
@@ -493,6 +502,10 @@ snapshots:
       react-dom: 19.2.4(react@19.2.4)
 
   '@standard-schema/spec@1.1.0': {}
+
+  '@types/node@25.2.0':
+    dependencies:
+      undici-types: 7.16.0
 
   '@types/react@19.2.10':
     dependencies:
@@ -724,6 +737,8 @@ snapshots:
   tinyexec@1.0.2: {}
 
   typescript@5.9.3: {}
+
+  undici-types@7.16.0: {}
 
   valibot@1.2.0(typescript@5.9.3):
     optionalDependencies:
