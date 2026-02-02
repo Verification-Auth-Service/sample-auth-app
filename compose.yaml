@@ -1,0 +1,7 @@
+services:
+  react-router-auth-sample:
+    build:
+      context: ./apps/react-router-auth-sample
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
