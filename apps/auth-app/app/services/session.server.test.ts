@@ -4,7 +4,6 @@ let getSession: typeof import("./session.server").getSession;
 let commitSession: typeof import("./session.server").commitSession;
 let destroySession: typeof import("./session.server").destroySession;
 
-// NOTE: import 前に env をセット（session.server.ts が requireEnv で読むため）
 beforeAll(async () => {
   process.env.SESSION_SECRET = "test_secret_please_change";
   process.env.NODE_ENV = "test";
@@ -14,7 +13,6 @@ beforeAll(async () => {
 });
 
 describe("session.server", () => {
-
   it("roundtrip: set -> commit -> get reads value", async () => {
     const req1 = new Request("http://localhost/_", { headers: {} });
     const s1 = await getSession(req1);
