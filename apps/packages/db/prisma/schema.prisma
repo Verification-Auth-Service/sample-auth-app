@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
 }
 
 generator client {
@@ -8,6 +8,49 @@ generator client {
 
 model User {
   id        String   @id @default(cuid())
-  email     String   @unique
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts  OAuthAccount[]
+  sessions  Session[]
+}
+
+model OAuthAccount {
+  id                 String   @id @default(cuid())
+
+  // プロバイダ識別
+  provider           String   @db.VarChar(50)   // "google" | "github" | "instagram"
+  providerAccountId  String   @map("provider_account_id") @db.VarChar(255)
+
+  // ローカルユーザーとの紐付け
+  userId             String   @map("user_id")
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // OAuth トークン情報
+  accessToken        String?  @map("access_token")  @db.VarChar(512)
+  refreshToken       String?  @map("refresh_token") @db.VarChar(512)
+  expiresAt          DateTime? @map("expires_at")   // access token の失効時刻
+  scope              String?  @db.VarChar(255)
+
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt      @map("updated_at")
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime @map("expires_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@index([userId])
+  @@map("sessions")
 }
