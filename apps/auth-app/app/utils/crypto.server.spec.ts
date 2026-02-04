@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { createCodeChallenge, createCodeVerifier, createCsrfToken, createState, randomString, safeEqual } from "./crypto.server";
+import {
+  createCodeChallenge,
+  createCodeVerifier,
+  createCsrfToken,
+  createState,
+  randomString,
+  safeEqual,
+  sha256Base64Url,
+} from "./crypto.server";
 
 describe("crypto.server", () => {
   it("randomString returns urlsafe string", () => {
@@ -13,6 +21,7 @@ describe("crypto.server", () => {
     // PKCEの許容長（43-128）の範囲内か
     const v = createCodeVerifier();
     expect(v.length).toBe(43);
+    expect(v).toMatch(/^[A-Za-z0-9_-]+$/);
   });
 
   it("createCodeChallenge matches sha256 base64url of verifier", () => {
@@ -23,8 +32,19 @@ describe("crypto.server", () => {
 
   it("createState/createCsrfToken return non-empty tokens", () => {
     // CSRF/Stateは空でないこと
-    expect(createState().length).toBeGreaterThan(0);
-    expect(createCsrfToken().length).toBeGreaterThan(0);
+    const state = createState();
+    const csrf = createCsrfToken();
+    expect(state.length).toBeGreaterThan(0);
+    expect(csrf.length).toBeGreaterThan(0);
+    expect(state).toMatch(/^[A-Za-z0-9_-]+$/);
+    expect(csrf).toMatch(/^[A-Za-z0-9_-]+$/);
+  });
+
+  it("sha256Base64Url returns urlsafe 43-char string", () => {
+    // SHA-256(32 bytes) -> base64url 43文字
+    const v = sha256Base64Url("abc");
+    expect(v.length).toBe(43);
+    expect(v).toMatch(/^[A-Za-z0-9_-]+$/);
   });
 
   it("safeEqual compares in constant time for equal strings", () => {
