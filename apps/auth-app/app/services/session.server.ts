@@ -6,31 +6,59 @@ function requireEnv(name: string): string {
   return v;
 }
 
-const sessionSecret = requireEnv("SESSION_SECRET");
+export type CreateAppSessionStorageOptions = {
+  /** @deprecated Use sessionSecret instead */
+  secret?: string;
+  sessionSecret?: string;
+  nodeEnv?: string;
+};
 
-export const sessionStorage = createCookieSessionStorage({
-  cookie: {
-    name: "__session",
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    secrets: [sessionSecret],
-    maxAge: 60 * 60 * 24 * 14, // 14 日
-  },
-});
+export function createAppSessionStorage(options: CreateAppSessionStorageOptions = {}) {
+  const sessionSecret = options.sessionSecret ?? options.secret ?? requireEnv("SESSION_SECRET");
+  const nodeEnv = options.nodeEnv ?? process.env.NODE_ENV;
+
+  return createCookieSessionStorage({
+    cookie: {
+      name: "__session",
+      httpOnly: true,
+      sameSite: "lax",
+      secure: nodeEnv === "production",
+      path: "/",
+      secrets: [sessionSecret],
+      maxAge: 60 * 60 * 24 * 14, // 14 日
+    },
+  });
+}
+
+type AppSessionStorage = ReturnType<typeof createCookieSessionStorage>;
+type AppSessionType = Awaited<ReturnType<AppSessionStorage["getSession"]>>;
+
+let cachedSessionStorage: AppSessionStorage | null = null;
+
+function getSessionStorage() {
+  if (!cachedSessionStorage) {
+    cachedSessionStorage = createAppSessionStorage();
+  }
+  return cachedSessionStorage;
+}
 
 export type AppSession = Awaited<ReturnType<typeof getSession>>;
 
 export async function getSession(request: Request) {
   const cookie = request.headers.get("Cookie");
-  return sessionStorage.getSession(cookie);
+  return getSessionStorage().getSession(cookie);
 }
 
-export async function commitSession(session: any, options?: Parameters<typeof sessionStorage.commitSession>[1]) {
-  return sessionStorage.commitSession(session, options);
+export async function commitSession(
+  session: AppSessionType,
+  options?: Parameters<AppSessionStorage["commitSession"]>[1]
+) {
+  return getSessionStorage().commitSession(session, options);
 }
 
-export async function destroySession(session: any, options?: Parameters<typeof sessionStorage.destroySession>[1]) {
-  return sessionStorage.destroySession(session, options);
+export async function destroySession(
+  session: AppSessionType,
+  options?: Parameters<AppSessionStorage["destroySession"]>[1]
+) {
+  return getSessionStorage().destroySession(session, options);
 }
