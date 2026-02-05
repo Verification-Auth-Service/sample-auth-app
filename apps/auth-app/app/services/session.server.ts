@@ -1,5 +1,12 @@
 import { createCookieSessionStorage } from "react-router";
 
+export type SessionData = {
+  "oauth:state"?: string;
+  "oauth:verifier"?: string;
+  "oauth:createdAt"?: number;
+  [key: string]: unknown;
+};
+
 function requireEnv(name: string): string {
   const v = process.env[name];
   if (!v) throw new Error(`Missing env: ${name}`);
