@@ -1,5 +1,12 @@
 import { createCookieSessionStorage } from "react-router";
 
+export type SessionData = {
+  "oauth:state"?: string;
+  "oauth:verifier"?: string;
+  "oauth:createdAt"?: number;
+  [key: string]: unknown;
+};
+
 function requireEnv(name: string): string {
   const v = process.env[name];
   if (!v) throw new Error(`Missing env: ${name}`);
@@ -17,7 +24,7 @@ export function createAppSessionStorage(options: CreateAppSessionStorageOptions 
   const sessionSecret = options.sessionSecret ?? options.secret ?? requireEnv("SESSION_SECRET");
   const nodeEnv = options.nodeEnv ?? process.env.NODE_ENV;
 
-  return createCookieSessionStorage({
+  return createCookieSessionStorage<SessionData>({
     cookie: {
       name: "__session",
       httpOnly: true,
@@ -30,7 +37,7 @@ export function createAppSessionStorage(options: CreateAppSessionStorageOptions 
   });
 }
 
-type AppSessionStorage = ReturnType<typeof createCookieSessionStorage>;
+type AppSessionStorage = ReturnType<typeof createAppSessionStorage>;
 type AppSessionType = Awaited<ReturnType<AppSessionStorage["getSession"]>>;
 
 let cachedSessionStorage: AppSessionStorage | null = null;
