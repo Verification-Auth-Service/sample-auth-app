@@ -37,7 +37,7 @@ export function createAppSessionStorage(options: CreateAppSessionStorageOptions 
   });
 }
 
-type AppSessionStorage = ReturnType<typeof createCookieSessionStorage>;
+type AppSessionStorage = ReturnType<typeof createAppSessionStorage>;
 type AppSessionType = Awaited<ReturnType<AppSessionStorage["getSession"]>>;
 
 let cachedSessionStorage: AppSessionStorage | null = null;
