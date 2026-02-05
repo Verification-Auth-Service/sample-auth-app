@@ -24,7 +24,7 @@ export function createAppSessionStorage(options: CreateAppSessionStorageOptions 
   const sessionSecret = options.sessionSecret ?? options.secret ?? requireEnv("SESSION_SECRET");
   const nodeEnv = options.nodeEnv ?? process.env.NODE_ENV;
 
-  return createCookieSessionStorage({
+  return createCookieSessionStorage<SessionData>({
     cookie: {
       name: "__session",
       httpOnly: true,
