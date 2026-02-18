@@ -25,9 +25,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const verifier = createCodeVerifier();
   const challenge = createCodeChallenge(verifier);
 
-  session.set("oauth:state", state);
-  session.set("oauth:verifier", verifier);
-  session.set("oauth:createdAt", Date.now());
+  session.set("oauth:state", state); // state をセッションに保存
+  session.set("oauth:verifier", verifier); // verifier をセッションに保存
+  session.set("oauth:createdAt", Date.now()); // 作成日時をセッションに保存
 
   const authorizeUrl = new URL(requireEnv("AUTHORIZE_URL"));
   authorizeUrl.searchParams.set("client_id", requireEnv("CLIENT_ID"));

@@ -56,16 +56,10 @@ export async function getSession(request: Request) {
   return getSessionStorage().getSession(cookie);
 }
 
-export async function commitSession(
-  session: AppSessionType,
-  options?: Parameters<AppSessionStorage["commitSession"]>[1]
-) {
+export async function commitSession(session: AppSessionType, options?: Parameters<AppSessionStorage["commitSession"]>[1]) {
   return getSessionStorage().commitSession(session, options);
 }
 
-export async function destroySession(
-  session: AppSessionType,
-  options?: Parameters<AppSessionStorage["destroySession"]>[1]
-) {
+export async function destroySession(session: AppSessionType, options?: Parameters<AppSessionStorage["destroySession"]>[1]) {
   return getSessionStorage().destroySession(session, options);
 }
