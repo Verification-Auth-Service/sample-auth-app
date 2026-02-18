@@ -27,4 +27,51 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (state !== savedState) {
     return Response.json({ error: "不正な状態です。" }, { status: 400 });
   }
+
+  //認可サーバーが認可コードを返す先のURL
+  const redirectUri = `${url.origin}/auth/github/callback`;
+
+  const clientId = process.env.GITHUB_CLIENT_ID;
+  const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    return Response.json({ error: "GitHub OAuth 設定（CLIENT_ID/SECRET）が不足しています。" }, { status: 500 });
+  }
+
+  // githubへアクセストークンをリクエストする
+  // https://github.com/login/oauth/access_token
+
+  const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      redirect_uri: redirectUri,
+      // code_verifier: verifier, // PKCEを使用する場合はこれも
+    }),
+  });
+
+  const tokenJson = await tokenRes.json().catch(() => null);
+
+  if (!tokenRes.ok || !tokenJson || tokenJson.error) {
+    return Response.json(
+      {
+        error: "GitHubトークン交換に失敗しました。",
+        detail: tokenJson ?? null,
+      },
+      { status: 400 },
+    );
+  }
+
+  const accessToken = tokenJson.access_token as string | undefined;
+  if (!accessToken) {
+    return Response.json({ error: "access_token が取得できませんでした。", detail: tokenJson }, { status: 400 });
+  }
+
+  // とりあえず確認用に先頭六文字を返す
+  return Response.json({ ok: true, accessTokenPreview: accessToken.slice(0, 6) + "..." });
 }
