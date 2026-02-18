@@ -28,6 +28,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return Response.json({ error: "不正な状態です。" }, { status: 400 });
   }
 
+  const verifier = session.get("oauth:verifier");
+  if (!verifier || typeof verifier !== "string") {
+    return Response.json({ error: "code_verifier がセッションに見つかりません。" }, { status: 400 });
+  }
+
   //認可サーバーが認可コードを返す先のURL
   const redirectUri = `${url.origin}/auth/github/callback`;
 
@@ -51,7 +56,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       client_secret: clientSecret,
       code,
       redirect_uri: redirectUri,
-      // code_verifier: verifier, // PKCEを使用する場合はこれも
+      code_verifier: verifier,
     }),
   });
 
