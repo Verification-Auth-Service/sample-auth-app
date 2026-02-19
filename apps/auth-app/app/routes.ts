@@ -3,5 +3,7 @@ import { remixRoutesOptionAdapter } from "@react-router/remix-routes-option-adap
 import { flatRoutes } from "remix-flat-routes";
 
 export default remixRoutesOptionAdapter((defineRoutes) => {
-  return flatRoutes("routes", defineRoutes);
+  return flatRoutes("routes", defineRoutes, {
+    ignoredRouteFiles: ["**/*.spec.*", "**/*.test.*", "**/__tests__/**"],
+  });
 }) satisfies RouteConfig;
