@@ -30,7 +30,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   session.set("oauth:createdAt", Date.now()); // 作成日時をセッションに保存
 
   const authorizeUrl = new URL(requireEnv("AUTHORIZE_URL"));
-  authorizeUrl.searchParams.set("client_id", requireEnv("CLIENT_ID"));
+  authorizeUrl.searchParams.set("client_id", requireEnv("GITHUB_CLIENT_ID"));
   authorizeUrl.searchParams.set("redirect_uri", getRedirectUri());
   authorizeUrl.searchParams.set("state", state);
   authorizeUrl.searchParams.set("code_challenge", challenge);
