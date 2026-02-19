@@ -13,10 +13,10 @@ docker compose up
 
 ## prismaマイグレーション
 
-# (1) DB起動
+### (1) DB起動
 docker compose up -d db
 
-# (2) マイグレーション実行
+### (2) マイグレーション実行
 docker compose run --rm db-migrate
 
 bash
