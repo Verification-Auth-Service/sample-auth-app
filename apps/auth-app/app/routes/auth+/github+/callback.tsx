@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
-import { getSession } from "~/services/session.server";
+import { commitSession, getSession } from "~/services/session.server";
 
 function redirectToError(
   url: URL,
@@ -131,7 +131,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
     });
   }
 
+  session.set("github:access_token", accessToken);
+  const setCookie = await commitSession(session, { maxAge: 60 * 60 * 24 * 14 });
+
   // とりあえず確認用に先頭六文字を返す
   console.log("GitHubアクセストークンを取得しました。", { accessTokenPreview: accessToken.slice(0, 6) + "..." });
-  return Response.json({ ok: true, accessTokenPreview: accessToken.slice(0, 6) + "..." });
+  return Response.json(
+    { ok: true, accessTokenPreview: accessToken.slice(0, 6) + "..." },
+    {
+      headers: {
+        "Set-Cookie": setCookie,
+      },
+    },
+  );
 }
