@@ -19,8 +19,10 @@ function sessionFrom(values: Record<string, unknown>): SessionLike {
   };
 }
 
-async function readJson(response: Response) {
-  return response.json();
+function getLocationUrl(response: Response) {
+  const location = response.headers.get("Location");
+  if (!location) throw new Error("Missing Location header");
+  return new URL(location, "http://localhost");
 }
 
 function makeArgs(request: Request): LoaderFunctionArgs {
@@ -51,55 +53,61 @@ afterEach(() => {
 });
 
 describe("auth+/github+/callback", () => {
-  it("errorパラメータがある場合は400を返す", async () => {
+  it("errorパラメータがある場合はerrorページへリダイレクトする", async () => {
     const request = new Request("http://localhost/auth/github/callback?error=access_denied");
 
     const response = await loader(makeArgs(request));
 
-    expect(response.status).toBe(400);
-    await expect(readJson(response)).resolves.toEqual({
-      error: "GitHub認証に失敗しました: access_denied",
-    });
+    expect(response.status).toBe(302);
+    const url = getLocationUrl(response);
+    expect(url.pathname).toBe("/error");
+    expect(url.searchParams.get("title")).toBe("GitHub認証に失敗しました");
+    expect(url.searchParams.get("message")).toBe("GitHub側で認証がキャンセルまたは拒否されました。");
+    expect(url.searchParams.get("code")).toBe("access_denied");
   });
 
-  it("codeまたはstateがない場合は400を返す", async () => {
+  it("codeまたはstateがない場合はerrorページへリダイレクトする", async () => {
     const request = new Request("http://localhost/auth/github/callback");
 
     const response = await loader(makeArgs(request));
 
-    expect(response.status).toBe(400);
-    await expect(readJson(response)).resolves.toEqual({
-      error: "GitHub認証に必要な情報が不足しています。",
-    });
+    expect(response.status).toBe(302);
+    const url = getLocationUrl(response);
+    expect(url.pathname).toBe("/error");
+    expect(url.searchParams.get("title")).toBe("GitHub認証に失敗しました");
+    expect(url.searchParams.get("message")).toBe("必要な情報（code / state）が不足しています。");
+    expect(url.searchParams.get("code")).toBe("missing_params");
   });
 
-  it("stateが一致しない場合は400を返す", async () => {
+  it("stateが一致しない場合はerrorページへリダイレクトする", async () => {
     vi.mocked(getSession).mockResolvedValue(sessionFrom({ "oauth:state": "saved_state" }) as never);
 
     const request = new Request("http://localhost/auth/github/callback?code=abc&state=given_state");
 
     const response = await loader(makeArgs(request));
 
-    expect(response.status).toBe(400);
-    await expect(readJson(response)).resolves.toEqual({
-      error: "不正な状態です。",
-    });
+    expect(response.status).toBe(302);
+    const url = getLocationUrl(response);
+    expect(url.pathname).toBe("/error");
+    expect(url.searchParams.get("message")).toBe("セキュリティ検証に失敗しました。");
+    expect(url.searchParams.get("code")).toBe("invalid_state");
   });
 
-  it("code_verifierがセッションに無い場合は400を返す", async () => {
+  it("code_verifierがセッションに無い場合はerrorページへリダイレクトする", async () => {
     vi.mocked(getSession).mockResolvedValue(sessionFrom({ "oauth:state": "state1" }) as never);
 
     const request = new Request("http://localhost/auth/github/callback?code=abc&state=state1");
 
     const response = await loader(makeArgs(request));
 
-    expect(response.status).toBe(400);
-    await expect(readJson(response)).resolves.toEqual({
-      error: "code_verifier がセッションに見つかりません。",
-    });
+    expect(response.status).toBe(302);
+    const url = getLocationUrl(response);
+    expect(url.pathname).toBe("/error");
+    expect(url.searchParams.get("message")).toBe("認証情報の検証に失敗しました。");
+    expect(url.searchParams.get("code")).toBe("missing_verifier");
   });
 
-  it("GitHub OAuth設定が不足している場合は500を返す", async () => {
+  it("GitHub OAuth設定が不足している場合はerrorページへリダイレクトする", async () => {
     delete process.env.GITHUB_CLIENT_ID;
     delete process.env.GITHUB_CLIENT_SECRET;
 
@@ -109,13 +117,14 @@ describe("auth+/github+/callback", () => {
 
     const response = await loader(makeArgs(request));
 
-    expect(response.status).toBe(500);
-    await expect(readJson(response)).resolves.toEqual({
-      error: "GitHub OAuth 設定（CLIENT_ID/SECRET）が不足しています。",
-    });
+    expect(response.status).toBe(302);
+    const url = getLocationUrl(response);
+    expect(url.pathname).toBe("/error");
+    expect(url.searchParams.get("message")).toBe("サーバー側の設定が不足しています。");
+    expect(url.searchParams.get("code")).toBe("missing_oauth_config");
   });
 
-  it("トークン交換が失敗した場合は400を返す", async () => {
+  it("トークン交換が失敗した場合はerrorページへリダイレクトする", async () => {
     vi.mocked(getSession).mockResolvedValue(sessionFrom({ "oauth:state": "state1", "oauth:verifier": "verifier1" }) as never);
 
     vi.stubGlobal(
@@ -130,14 +139,16 @@ describe("auth+/github+/callback", () => {
 
     const response = await loader(makeArgs(request));
 
-    expect(response.status).toBe(400);
-    await expect(readJson(response)).resolves.toEqual({
-      error: "GitHubトークン交換に失敗しました。",
-      detail: { error: "invalid_grant" },
-    });
+    expect(response.status).toBe(302);
+    const url = getLocationUrl(response);
+    expect(url.pathname).toBe("/error");
+    expect(url.searchParams.get("message")).toBe(
+      "トークン交換に失敗しました。しばらくしてから再度お試しください。",
+    );
+    expect(url.searchParams.get("code")).toBe("token_exchange_failed");
   });
 
-  it("access_tokenが無い場合は400を返す", async () => {
+  it("access_tokenが無い場合はerrorページへリダイレクトする", async () => {
     vi.mocked(getSession).mockResolvedValue(sessionFrom({ "oauth:state": "state1", "oauth:verifier": "verifier1" }) as never);
 
     vi.stubGlobal(
@@ -152,11 +163,11 @@ describe("auth+/github+/callback", () => {
 
     const response = await loader(makeArgs(request));
 
-    expect(response.status).toBe(400);
-    await expect(readJson(response)).resolves.toEqual({
-      error: "access_token が取得できませんでした。",
-      detail: { token_type: "bearer" },
-    });
+    expect(response.status).toBe(302);
+    const url = getLocationUrl(response);
+    expect(url.pathname).toBe("/error");
+    expect(url.searchParams.get("message")).toBe("アクセストークンの取得に失敗しました。");
+    expect(url.searchParams.get("code")).toBe("missing_access_token");
   });
 
   it("成功時はアクセストークンの先頭6文字を返す", async () => {
@@ -175,7 +186,7 @@ describe("auth+/github+/callback", () => {
     const response = await loader(makeArgs(request));
 
     expect(response.status).toBe(200);
-    await expect(readJson(response)).resolves.toEqual({
+    await expect(response.json()).resolves.toEqual({
       ok: true,
       accessTokenPreview: "abcdef...",
     });
