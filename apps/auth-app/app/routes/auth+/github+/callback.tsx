@@ -1,5 +1,25 @@
 import type { LoaderFunctionArgs } from "react-router";
+import { redirect } from "react-router";
 import { getSession } from "~/services/session.server";
+
+function redirectToError(
+  url: URL,
+  {
+    title,
+    message,
+    code,
+  }: {
+    title: string;
+    message: string;
+    code?: string;
+  },
+) {
+  const errorUrl = new URL("/error", url.origin);
+  errorUrl.searchParams.set("title", title);
+  errorUrl.searchParams.set("message", message);
+  if (code) errorUrl.searchParams.set("code", code);
+  return redirect(errorUrl.toString());
+}
 
 // GET /auth/github/callback
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -13,13 +33,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // エラーがある場合はエラーメッセージを返す
   if (error) {
     console.error("GitHub認証エラー:", error);
-    return Response.json({ error: `GitHub認証に失敗しました: ${error}` }, { status: 400 });
+    return redirectToError(url, {
+      title: "GitHub認証に失敗しました",
+      message: "GitHub側で認証がキャンセルまたは拒否されました。",
+      code: error,
+    });
   }
 
   // codeとstateがない場合はエラーメッセージを返す
   if (!code || !state) {
     console.error("codeまたはstateが不足しています。", { code, state });
-    return Response.json({ error: "GitHub認証に必要な情報が不足しています。" }, { status: 400 });
+    return redirectToError(url, {
+      title: "GitHub認証に失敗しました",
+      message: "必要な情報（code / state）が不足しています。",
+      code: "missing_params",
+    });
   }
 
   // stateを検証する（oauth:stateと比較）
@@ -28,13 +56,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const savedState = session.get("oauth:state");
   if (state !== savedState) {
     console.error("stateの検証に失敗しました。", { receivedState: state, expectedState: savedState });
-    return Response.json({ error: "不正な状態です。" }, { status: 400 });
+    return redirectToError(url, {
+      title: "GitHub認証に失敗しました",
+      message: "セキュリティ検証に失敗しました。",
+      code: "invalid_state",
+    });
   }
 
   const verifier = session.get("oauth:verifier");
   if (!verifier || typeof verifier !== "string") {
     console.error("code_verifier がセッションに見つかりません。");
-    return Response.json({ error: "code_verifier がセッションに見つかりません。" }, { status: 400 });
+    return redirectToError(url, {
+      title: "GitHub認証に失敗しました",
+      message: "認証情報の検証に失敗しました。",
+      code: "missing_verifier",
+    });
   }
 
   //認可サーバーが認可コードを返す先のURL
@@ -44,7 +80,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const clientSecret = process.env.GITHUB_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
     console.error("GitHub OAuth 設定が不足しています。", { clientId: !!clientId, clientSecret: !!clientSecret });
-    return Response.json({ error: "GitHub OAuth 設定（CLIENT_ID/SECRET）が不足しています。" }, { status: 500 });
+    return redirectToError(url, {
+      title: "GitHub認証に失敗しました",
+      message: "サーバー側の設定が不足しています。",
+      code: "missing_oauth_config",
+    });
   }
 
   // githubへアクセストークンをリクエストする
@@ -73,19 +113,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const tokenJson = await tokenRes.json().catch(() => null);
 
   if (!tokenRes.ok || !tokenJson || tokenJson.error) {
-    return Response.json(
-      {
-        error: "GitHubトークン交換に失敗しました。",
-        detail: tokenJson ?? null,
-      },
-      { status: 400 },
-    );
+    console.error("GitHubトークン交換に失敗しました。", { status: tokenRes.status, detail: tokenJson ?? null });
+    return redirectToError(url, {
+      title: "GitHub認証に失敗しました",
+      message: "トークン交換に失敗しました。しばらくしてから再度お試しください。",
+      code: "token_exchange_failed",
+    });
   }
 
   const accessToken = tokenJson.access_token as string | undefined;
   if (!accessToken) {
     console.error("access_token が取得できませんでした。", { tokenJson });
-    return Response.json({ error: "access_token が取得できませんでした。", detail: tokenJson }, { status: 400 });
+    return redirectToError(url, {
+      title: "GitHub認証に失敗しました",
+      message: "アクセストークンの取得に失敗しました。",
+      code: "missing_access_token",
+    });
   }
 
   // とりあえず確認用に先頭六文字を返す
