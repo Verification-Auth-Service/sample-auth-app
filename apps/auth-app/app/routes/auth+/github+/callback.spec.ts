@@ -1,21 +1,26 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loader } from "./callback";
-import { getSession } from "~/services/session.server";
+import { commitSession, getSession } from "~/services/session.server";
 
 vi.mock("~/services/session.server", () => ({
   getSession: vi.fn(),
+  commitSession: vi.fn(),
 }));
 
 const originalEnv = { ...process.env };
 
 type SessionLike = {
   get: (key: string) => unknown;
+  set: (key: string, value: unknown) => void;
 };
 
 function sessionFrom(values: Record<string, unknown>): SessionLike {
   return {
     get: (key: string) => values[key],
+    set: (key: string, value: unknown) => {
+      values[key] = value;
+    },
   };
 }
 
@@ -38,6 +43,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   process.env.GITHUB_CLIENT_ID = "test_client_id";
   process.env.GITHUB_CLIENT_SECRET = "test_client_secret";
+  vi.mocked(commitSession).mockResolvedValue("cookie=1; Path=/");
 });
 
 afterEach(() => {
@@ -186,6 +192,7 @@ describe("auth+/github+/callback", () => {
     const response = await loader(makeArgs(request));
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("Set-Cookie")).toBe("cookie=1; Path=/");
     await expect(response.json()).resolves.toEqual({
       ok: true,
       accessTokenPreview: "abcdef...",
