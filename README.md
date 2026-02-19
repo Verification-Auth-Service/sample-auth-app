@@ -9,6 +9,7 @@ pnpm -C apps/auth-app dev
 ## Dockerで起動
 
 docker compose build --no-cache
+
 docker compose up
 
 ## prismaマイグレーション
@@ -24,9 +25,13 @@ bash
 docker compose up --build --abort-on-container-exit db-migrate
 
 bash
+```
 docker compose down -v
+
 docker compose up -d db
+
 docker compose run --rm db-migrate
+```
 
 ## 環境変数（OAuth）
 
