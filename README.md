@@ -1,5 +1,16 @@
 # sample-auth-app
 
+## 起動方法
+
+### AuthSample(React Router)
+
+pnpm -C apps/auth-app dev
+
+## Dockerで起動
+
+docker compose build --no-cache
+docker compose up
+
 ## 環境変数（OAuth）
 
 プロバイダごとの固定値
@@ -20,7 +31,7 @@
 
 例: `APP_ORIGIN` から `REDIRECT_URI` を組み立てる場合
 
-apps/auth-app/.env配置環境変数
+## apps/auth-app/.env配置環境変数
 
 ```env
 GITHUB_CLIENT_ID=YOUR_GITHUB_CLIENT_ID
@@ -30,8 +41,8 @@ TOKEN_URL=https://github.com/login/oauth/access_token
 USERINFO_URL=https://api.github.com/user
 SCOPE=read:user
 
-APP_ORIGIN=http://localhost:3000
-REDIRECT_URI=http://localhost:3000/auth/github/callback
+APP_ORIGIN=http://localhost:5173
+REDIRECT_URI=http://localhost:5173 /auth/github/callback
 SESSION_SECRET=YOUR_SESSION_SECRET
 ```
 

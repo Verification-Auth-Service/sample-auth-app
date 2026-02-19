@@ -1,0 +1,10 @@
+.git
+node_modules
+.pnpm-store
+**/node_modules
+**/.react-router
+**/build
+**/dist
+**/.next
+**/.cache
+**/*.log
