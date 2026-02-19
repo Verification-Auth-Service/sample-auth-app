@@ -1,0 +1,15 @@
+{
+  "name": "sample-auth-app",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.26.0",
+  "scripts": {
+    "dev": "pnpm -C apps/auth-app dev",
+    "build": "pnpm -C apps/auth-app build",
+    "start": "pnpm -C apps/auth-app start",
+    "test": "pnpm -C apps/auth-app test"
+  }
+}
