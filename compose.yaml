@@ -29,15 +29,18 @@ services:
 
   react-router-auth-sample:
     build:
-      context: ./apps/auth-app
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/auth-app/Dockerfile
     ports:
       - "5173:5173"
+    env_file:
+      - ./apps/auth-app/.env
     depends_on:
       db:
         condition: service_healthy
     environment:
       DATABASE_URL: mysql://app:app@db:3306/app
+      PORT: "5173"
 
 volumes:
   db_data:
