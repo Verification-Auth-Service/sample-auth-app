@@ -134,14 +134,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   session.set("github:access_token", accessToken);
   const setCookie = await commitSession(session, { maxAge: 60 * 60 * 24 * 14 });
 
-  // とりあえず確認用に先頭六文字を返す
+  // とりあえず確認用に先頭六文字をログに出す
   console.log("GitHubアクセストークンを取得しました。", { accessTokenPreview: accessToken.slice(0, 6) + "..." });
-  return Response.json(
-    { ok: true, accessTokenPreview: accessToken.slice(0, 6) + "..." },
-    {
-      headers: {
-        "Set-Cookie": setCookie,
-      },
+  return redirect("/githubinfo", {
+    headers: {
+      "Set-Cookie": setCookie,
     },
-  );
+  });
 }
