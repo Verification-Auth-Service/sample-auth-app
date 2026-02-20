@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { commitSession, getSession } from "~/services/session.server";
+import { prisma } from "@sample-auth-app/db";
 
 function redirectToError(
   url: URL,
@@ -143,6 +144,70 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   const refreshToken = tokenJson.refresh_token as string | undefined;
+  const expiresInSec = Number(tokenJson.expires_in);
+  const expiresAt = Number.isFinite(expiresInSec) && expiresInSec > 0 ? new Date(Date.now() + expiresInSec * 1000) : null;
+  const scope = typeof tokenJson.scope === "string" ? tokenJson.scope : null;
+
+  const userRes = await fetch("https://api.github.com/user", {
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${accessToken}`,
+      "X-GitHub-Api-Version": "2022-11-28",
+    },
+  });
+
+  if (!userRes.ok) {
+    const detail = await userRes.json().catch(() => null);
+    console.error("GitHubユーザー取得に失敗しました。", { status: userRes.status, detail });
+    return redirectToError(url, {
+      title: "GitHub App認証に失敗しました",
+      message: "ユーザー情報の取得に失敗しました。しばらくしてから再度お試しください。",
+      code: "github_user_failed",
+    });
+  }
+
+  const userJson = (await userRes.json().catch(() => null)) as { id?: number } | null;
+  if (!userJson?.id) {
+    console.error("GitHubユーザーIDが取得できませんでした。", { userJson });
+    return redirectToError(url, {
+      title: "GitHub App認証に失敗しました",
+      message: "ユーザー情報の取得に失敗しました。しばらくしてから再度お試しください。",
+      code: "missing_github_user_id",
+    });
+  }
+
+  try {
+    await prisma.oAuthAccount.upsert({
+      where: {
+        provider_providerAccountId: {
+          provider: "github_app",
+          providerAccountId: String(userJson.id),
+        },
+      },
+      update: {
+        accessToken,
+        refreshToken: refreshToken ?? null,
+        expiresAt,
+        scope,
+      },
+      create: {
+        provider: "github_app",
+        providerAccountId: String(userJson.id),
+        accessToken,
+        refreshToken: refreshToken ?? null,
+        expiresAt,
+        scope,
+        user: { create: {} },
+      },
+    });
+  } catch (error) {
+    console.error("OAuthアカウントの保存に失敗しました。", { error });
+    return redirectToError(url, {
+      title: "GitHub App認証に失敗しました",
+      message: "認証情報の保存に失敗しました。しばらくしてから再度お試しください。",
+      code: "db_save_failed",
+    });
+  }
 
   session.set("github:access_token", accessToken);
   if (refreshToken) session.set("github:refresh_token", refreshToken);
