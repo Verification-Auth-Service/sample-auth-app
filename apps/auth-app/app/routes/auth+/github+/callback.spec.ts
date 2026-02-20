@@ -176,7 +176,7 @@ describe("auth+/github+/callback", () => {
     expect(url.searchParams.get("code")).toBe("missing_access_token");
   });
 
-  it("成功時はアクセストークンの先頭6文字を返す", async () => {
+  it("成功時はgithubinfoへリダイレクトし、セッションにトークンを保存する", async () => {
     vi.mocked(getSession).mockResolvedValue(sessionFrom({ "oauth:state": "state1", "oauth:verifier": "verifier1" }) as never);
 
     vi.stubGlobal(
@@ -191,11 +191,9 @@ describe("auth+/github+/callback", () => {
 
     const response = await loader(makeArgs(request));
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(302);
+    const url = getLocationUrl(response);
+    expect(url.pathname).toBe("/githubinfo");
     expect(response.headers.get("Set-Cookie")).toBe("cookie=1; Path=/");
-    await expect(response.json()).resolves.toEqual({
-      ok: true,
-      accessTokenPreview: "abcdef...",
-    });
   });
 });
