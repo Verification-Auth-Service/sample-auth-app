@@ -6,11 +6,13 @@
 
 pnpm -C apps/auth-app dev
 
-## Dockerで起動
+## Dockerで起動（Vite dev + HMR）
 
 docker compose build --no-cache
 
 docker compose up
+
+`react-router-auth-sample` は Vite の dev サーバーで起動し、`apps/auth-app` 配下の変更がホットリロードされます。
 
 ## prismaマイグレーション
 
@@ -56,7 +58,12 @@ GitHub App（User Access Token）用
 - `GITHUB_APP_SCOPE`（省略可）
 - `GITHUB_APP_REDIRECT_URI`（省略可。`APP_ORIGIN` から組み立てる場合は不要）
 
-refresh-token関係のためにopt-inにしている必要がある
+`Sign Up with GitHub (GitHub App)` で private repository を取得するには、少なくとも以下が必要です。
+
+- `GITHUB_APP_SCOPE` に `repo read:user` を含める（例: `GITHUB_APP_SCOPE=repo read:user`）
+- GitHub App 側で対象 private repository へのアクセス権を許可してインストールする
+
+refresh-token関係のためにopt-inにしている必要がある(ややこしいが、ボタンがopt-outになっている必要がある)
 doc/opt-in.png
 
 アプリ側の固定値
@@ -82,7 +89,7 @@ GITHUB_APP_CLIENT_ID=YOUR_GITHUB_APP_CLIENT_ID
 GITHUB_APP_CLIENT_SECRET=YOUR_GITHUB_APP_CLIENT_SECRET
 GITHUB_APP_AUTHORIZE_URL=https://github.com/login/oauth/authorize
 GITHUB_APP_TOKEN_URL=https://github.com/login/oauth/access_token
-GITHUB_APP_SCOPE=read:user
+GITHUB_APP_SCOPE=repo read:user
 # GITHUB_APP_REDIRECT_URI=http://localhost:5173/auth/github-app/callback
 
 APP_ORIGIN=http://localhost:5173

@@ -2,10 +2,19 @@ import type { LoaderFunctionArgs } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loader } from "./callback";
 import { commitSession, getSession } from "~/services/session.server";
+import { prisma } from "@sample-auth-app/db";
 
 vi.mock("~/services/session.server", () => ({
   getSession: vi.fn(),
   commitSession: vi.fn(),
+}));
+
+vi.mock("@sample-auth-app/db", () => ({
+  prisma: {
+    oAuthAccount: {
+      upsert: vi.fn(),
+    },
+  },
 }));
 
 const originalEnv = { ...process.env };
@@ -44,6 +53,7 @@ beforeEach(() => {
   process.env.GITHUB_APP_CLIENT_ID = "test_client_id";
   process.env.GITHUB_APP_CLIENT_SECRET = "test_client_secret";
   vi.mocked(commitSession).mockResolvedValue("cookie=1; Path=/");
+  vi.mocked(prisma.oAuthAccount.upsert).mockResolvedValue({ id: "account1" } as never);
 });
 
 afterEach(() => {
@@ -65,10 +75,16 @@ describe("auth+/github-app+/callback", () => {
 
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: vi.fn().mockResolvedValue({ access_token: "abcdef123456", refresh_token: "refresh987654" }),
-      }),
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: vi.fn().mockResolvedValue({ access_token: "abcdef123456", refresh_token: "refresh987654", expires_in: 3600 }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: vi.fn().mockResolvedValue({ id: 123 }),
+        }),
     );
 
     const request = new Request("http://localhost/auth/github-app/callback?code=abc&state=state1");
@@ -82,5 +98,6 @@ describe("auth+/github-app+/callback", () => {
     expect(sessionValues["github:access_token"]).toBe("abcdef123456");
     expect(sessionValues["github:refresh_token"]).toBe("refresh987654");
     expect(sessionValues["github:auth_type"]).toBe("github_app");
+    expect(prisma.oAuthAccount.upsert).toHaveBeenCalledTimes(1);
   });
 });

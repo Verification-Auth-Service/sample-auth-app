@@ -40,7 +40,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   authorizeUrl.searchParams.set("code_challenge", challenge);
   authorizeUrl.searchParams.set("code_challenge_method", "S256");
 
-  const scope = process.env.GITHUB_APP_SCOPE;
+  // private repository を取得したい場合は repo が必要
+  const scope = process.env.GITHUB_APP_SCOPE ?? "read:user repo";
   if (scope) authorizeUrl.searchParams.set("scope", scope);
 
   const setCookie = await commitSession(session, { maxAge: 60 * 10 });
