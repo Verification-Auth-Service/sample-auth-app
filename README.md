@@ -6,11 +6,13 @@
 
 pnpm -C apps/auth-app dev
 
-## Dockerで起動
+## Dockerで起動（Vite dev + HMR）
 
 docker compose build --no-cache
 
 docker compose up
+
+`react-router-auth-sample` は Vite の dev サーバーで起動し、`apps/auth-app` 配下の変更がホットリロードされます。
 
 ## prismaマイグレーション
 

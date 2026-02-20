@@ -10,6 +10,10 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store pnpm install --frozen-lo
 COPY . .
 RUN pnpm -C apps/packages/db prisma generate
 
+FROM development-dependencies-env AS dev-env
+WORKDIR /app/apps/auth-app
+CMD ["pnpm", "run", "dev", "--host", "0.0.0.0", "--port", "5173"]
+
 FROM node:20-alpine AS production-dependencies-env
 WORKDIR /app
 ENV PNPM_STORE_PATH=/pnpm/store
