@@ -18,8 +18,8 @@ services:
 
   db-migrate:
     build:
-      context: ./apps/packages/db
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/packages/db/Dockerfile
     depends_on:
       db:
         condition: service_healthy
