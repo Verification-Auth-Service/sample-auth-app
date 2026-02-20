@@ -142,11 +142,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
     });
   }
 
+  const refreshToken = tokenJson.refresh_token as string | undefined;
+
   session.set("github:access_token", accessToken);
+  if (refreshToken) session.set("github:refresh_token", refreshToken);
   session.set("github:auth_type", "github_app");
   const setCookie = await commitSession(session, { maxAge: 60 * 60 * 24 * 14 });
 
   console.log("GitHub Appアクセストークンを取得しました。", { accessTokenPreview: accessToken.slice(0, 6) + "..." });
+  if (refreshToken) {
+    console.log("GitHub Appリフレッシュトークンを取得しました。", { refreshTokenPreview: refreshToken.slice(0, 6) + "..." });
+  }
   return redirect("/githubinfo", {
     headers: {
       "Set-Cookie": setCookie,

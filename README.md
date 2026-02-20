@@ -15,9 +15,11 @@ docker compose up
 ## prismaマイグレーション
 
 ### (1) DB起動
+
 docker compose up -d db
 
 ### (2) マイグレーション実行
+
 docker compose run --rm db-migrate
 
 bash
@@ -25,6 +27,7 @@ bash
 docker compose up --build --abort-on-container-exit db-migrate
 
 bash
+
 ```
 docker compose down -v
 
@@ -52,6 +55,9 @@ GitHub App（User Access Token）用
 - `GITHUB_APP_TOKEN_URL`（省略可。既定は `https://github.com/login/oauth/access_token`）
 - `GITHUB_APP_SCOPE`（省略可）
 - `GITHUB_APP_REDIRECT_URI`（省略可。`APP_ORIGIN` から組み立てる場合は不要）
+
+refresh-token関係のためにopt-inにしている必要がある
+doc/opt-in.png
 
 アプリ側の固定値
 

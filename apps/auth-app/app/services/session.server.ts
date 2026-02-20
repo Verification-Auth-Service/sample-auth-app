@@ -5,6 +5,7 @@ export type SessionData = {
   "oauth:verifier"?: string;
   "oauth:createdAt"?: number;
   "github:access_token"?: string;
+  "github:refresh_token"?: string;
   "github:auth_type"?: "oauth_app" | "github_app";
   [key: string]: unknown;
 };
