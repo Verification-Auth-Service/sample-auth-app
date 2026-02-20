@@ -35,7 +35,7 @@ docker compose run --rm db-migrate
 
 ## 環境変数（OAuth）
 
-プロバイダごとの固定値
+プロバイダごとの固定値（OAuth App）
 
 - `GITHUB_CLIENT_ID`（必須）
 - `GITHUB_CLIENT_SECRET`（プロバイダによって必要。公開クライアント向けのフローでも要求されることがある ）
@@ -43,6 +43,15 @@ docker compose run --rm db-migrate
 - `TOKEN_URL`（トークンエンドポイント）
 - `USERINFO_URL`（ユーザー情報エンドポイント。例：GitHub は `https://api.github.com/user`）
 - `SCOPE`（最小：login-only）
+
+GitHub App（User Access Token）用
+
+- `GITHUB_APP_CLIENT_ID`（必須）
+- `GITHUB_APP_CLIENT_SECRET`（必須）
+- `GITHUB_APP_AUTHORIZE_URL`（省略可。既定は `https://github.com/login/oauth/authorize`）
+- `GITHUB_APP_TOKEN_URL`（省略可。既定は `https://github.com/login/oauth/access_token`）
+- `GITHUB_APP_SCOPE`（省略可）
+- `GITHUB_APP_REDIRECT_URI`（省略可。`APP_ORIGIN` から組み立てる場合は不要）
 
 アプリ側の固定値
 
@@ -62,6 +71,13 @@ AUTHORIZE_URL=https://github.com/login/oauth/authorize
 TOKEN_URL=https://github.com/login/oauth/access_token
 USERINFO_URL=https://api.github.com/user
 SCOPE=read:user
+
+GITHUB_APP_CLIENT_ID=YOUR_GITHUB_APP_CLIENT_ID
+GITHUB_APP_CLIENT_SECRET=YOUR_GITHUB_APP_CLIENT_SECRET
+GITHUB_APP_AUTHORIZE_URL=https://github.com/login/oauth/authorize
+GITHUB_APP_TOKEN_URL=https://github.com/login/oauth/access_token
+GITHUB_APP_SCOPE=read:user
+# GITHUB_APP_REDIRECT_URI=http://localhost:5173/auth/github-app/callback
 
 APP_ORIGIN=http://localhost:5173
 REDIRECT_URI=http://localhost:5173 /auth/github/callback

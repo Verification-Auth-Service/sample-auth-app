@@ -132,6 +132,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   session.set("github:access_token", accessToken);
+  session.set("github:auth_type", "oauth_app");
   const setCookie = await commitSession(session, { maxAge: 60 * 60 * 24 * 14 });
 
   // とりあえず確認用に先頭六文字をログに出す
