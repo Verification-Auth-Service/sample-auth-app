@@ -63,7 +63,7 @@ GitHub App（User Access Token）用
 - `GITHUB_APP_SCOPE` に `repo read:user` を含める（例: `GITHUB_APP_SCOPE=repo read:user`）
 - GitHub App 側で対象 private repository へのアクセス権を許可してインストールする
 
-refresh-token関係のためにopt-inにしている必要がある
+refresh-token関係のためにopt-inにしている必要がある(ややこしいが、ボタンがopt-outになっている必要がある)
 doc/opt-in.png
 
 アプリ側の固定値

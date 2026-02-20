@@ -148,6 +148,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const expiresAt = Number.isFinite(expiresInSec) && expiresInSec > 0 ? new Date(Date.now() + expiresInSec * 1000) : null;
   const scope = typeof tokenJson.scope === "string" ? tokenJson.scope : null;
 
+  // refresh_tokenがある場合はログに出力する（ただし値はマスクする）
+  if (refreshToken) {
+    console.log("GitHub Appリフレッシュトークンを取得しました。", { refreshTokenPreview: refreshToken.slice(0, 6) + "..." });
+  } else {
+    console.log("GitHub Appリフレッシュトークンは提供されませんでした。");
+  }
+
   const userRes = await fetch("https://api.github.com/user", {
     headers: {
       Accept: "application/vnd.github+json",
