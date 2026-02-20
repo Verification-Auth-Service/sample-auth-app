@@ -21,7 +21,23 @@ function redirectToError(
   return redirect(errorUrl.toString());
 }
 
-// GET /auth/github/callback
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing env: ${name}`);
+  return value;
+}
+
+function getEnvOrDefault(name: string, fallback: string): string {
+  return process.env[name] ?? fallback;
+}
+
+function getRedirectUri(origin: string): string {
+  const explicit = process.env.GITHUB_APP_REDIRECT_URI;
+  if (explicit) return explicit;
+  return new URL("/auth/github-app/callback", origin).toString();
+}
+
+// GET /auth/github-app/callback
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
 
@@ -32,9 +48,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // エラーがある場合はエラーメッセージを返す
   if (error) {
-    console.error("GitHub認証エラー:", error);
+    console.error("GitHub App認証エラー:", error);
     return redirectToError(url, {
-      title: "GitHub認証に失敗しました",
+      title: "GitHub App認証に失敗しました",
       message: "GitHub側で認証がキャンセルまたは拒否されました。",
       code: error,
     });
@@ -44,20 +60,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (!code || !state) {
     console.error("codeまたはstateが不足しています。", { code, state });
     return redirectToError(url, {
-      title: "GitHub認証に失敗しました",
+      title: "GitHub App認証に失敗しました",
       message: "必要な情報（code / state）が不足しています。",
       code: "missing_params",
     });
   }
-
-  // stateを検証する（oauth:stateと比較）
 
   const session = await getSession(request);
   const savedState = session.get("oauth:state");
   if (state !== savedState) {
     console.error("stateの検証に失敗しました。", { receivedState: state, expectedState: savedState });
     return redirectToError(url, {
-      title: "GitHub認証に失敗しました",
+      title: "GitHub App認証に失敗しました",
       message: "セキュリティ検証に失敗しました。",
       code: "invalid_state",
     });
@@ -67,30 +81,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (!verifier || typeof verifier !== "string") {
     console.error("code_verifier がセッションに見つかりません。");
     return redirectToError(url, {
-      title: "GitHub認証に失敗しました",
+      title: "GitHub App認証に失敗しました",
       message: "認証情報の検証に失敗しました。",
       code: "missing_verifier",
     });
   }
 
-  //認可サーバーが認可コードを返す先のURL
-  const redirectUri = `${url.origin}/auth/github/callback`;
-
-  const clientId = process.env.GITHUB_CLIENT_ID;
-  const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+  const clientId = process.env.GITHUB_APP_CLIENT_ID;
+  const clientSecret = process.env.GITHUB_APP_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
-    console.error("GitHub OAuth 設定が不足しています。", { clientId: !!clientId, clientSecret: !!clientSecret });
+    console.error("GitHub App OAuth 設定が不足しています。", { clientId: !!clientId, clientSecret: !!clientSecret });
     return redirectToError(url, {
-      title: "GitHub認証に失敗しました",
+      title: "GitHub App認証に失敗しました",
       message: "サーバー側の設定が不足しています。",
       code: "missing_oauth_config",
     });
   }
 
-  // githubへアクセストークンをリクエストする
-  // https://github.com/login/oauth/access_token
+  const tokenUrl = getEnvOrDefault("GITHUB_APP_TOKEN_URL", "https://github.com/login/oauth/access_token");
+  const redirectUri = getRedirectUri(url.origin);
 
-  const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
+  const tokenRes = await fetch(tokenUrl, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -105,7 +116,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }),
   });
 
-  console.log("GitHubトークンエンドポイントのレスポンス:", {
+  console.log("GitHub Appトークンエンドポイントのレスポンス:", {
     status: tokenRes.status,
     statusText: tokenRes.statusText,
   });
@@ -113,9 +124,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const tokenJson = await tokenRes.json().catch(() => null);
 
   if (!tokenRes.ok || !tokenJson || tokenJson.error) {
-    console.error("GitHubトークン交換に失敗しました。", { status: tokenRes.status, detail: tokenJson ?? null });
+    console.error("GitHub Appトークン交換に失敗しました。", { status: tokenRes.status, detail: tokenJson ?? null });
     return redirectToError(url, {
-      title: "GitHub認証に失敗しました",
+      title: "GitHub App認証に失敗しました",
       message: "トークン交換に失敗しました。しばらくしてから再度お試しください。",
       code: "token_exchange_failed",
     });
@@ -125,18 +136,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (!accessToken) {
     console.error("access_token が取得できませんでした。", { tokenJson });
     return redirectToError(url, {
-      title: "GitHub認証に失敗しました",
+      title: "GitHub App認証に失敗しました",
       message: "アクセストークンの取得に失敗しました。",
       code: "missing_access_token",
     });
   }
 
   session.set("github:access_token", accessToken);
-  session.set("github:auth_type", "oauth_app");
+  session.set("github:auth_type", "github_app");
   const setCookie = await commitSession(session, { maxAge: 60 * 60 * 24 * 14 });
 
-  // とりあえず確認用に先頭六文字をログに出す
-  console.log("GitHubアクセストークンを取得しました。", { accessTokenPreview: accessToken.slice(0, 6) + "..." });
+  console.log("GitHub Appアクセストークンを取得しました。", { accessTokenPreview: accessToken.slice(0, 6) + "..." });
   return redirect("/githubinfo", {
     headers: {
       "Set-Cookie": setCookie,

@@ -9,10 +9,20 @@ export default function Signup() {
     <main className="p-6">
       <h1 className="text-2xl font-semibold">Sign Up</h1>
       <p className="mt-2 text-sm text-slate-600">Signup page placeholder.</p>
-      {/* github signup button */}
-      <a href="/auth/github" className="inline-block mt-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
-        Sign Up with GitHub
-      </a>
+      <div className="mt-4 flex flex-col gap-2">
+        <a
+          href="/auth/github"
+          className="inline-block rounded bg-gray-800 px-4 py-2 text-white transition-colors hover:bg-gray-700"
+        >
+          Sign Up with GitHub (OAuth App)
+        </a>
+        <a
+          href="/auth/github-app"
+          className="inline-block rounded bg-slate-900 px-4 py-2 text-white transition-colors hover:bg-slate-800"
+        >
+          Sign Up with GitHub (GitHub App)
+        </a>
+      </div>
     </main>
   );
 }
