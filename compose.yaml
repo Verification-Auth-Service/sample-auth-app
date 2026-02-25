@@ -27,6 +27,17 @@ services:
       DATABASE_URL: mysql://app:app@db:3306/app
     restart: "no"
 
+  db-resource-migrate:
+    build:
+      context: .
+      dockerfile: ./apps/packages/db-resource/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://app:app@db:3306/app
+    restart: "no"
+
   react-router-auth-sample:
     build:
       context: .
