@@ -61,5 +61,28 @@ services:
       - /app/apps/auth-app/node_modules
       - /app/apps/packages/db/node_modules
 
+  resource-server-sample:
+    build:
+      context: .
+      dockerfile: ./apps/resource-server/Dockerfile
+      target: dev-env
+    ports:
+      - "5174:5174"
+    depends_on:
+      db:
+        condition: service_healthy
+      db-resource-migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: mysql://app:app@db:3306/app
+      PORT: "5174"
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "100"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/resource-server/node_modules
+      - /app/apps/packages/db-resource/node_modules
+
 volumes:
   db_data:
