@@ -1,0 +1,24 @@
+{
+  "name": "@sample-auth-app/db-resource",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "prisma": "prisma",
+    "migrate:dev": "prisma migrate dev",
+    "generate": "prisma generate",
+    "studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/adapter-mariadb": "^7.3.0",
+    "@prisma/client": "^7.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.0",
+    "prisma": "^7.0.0",
+    "typescript": "^5.0.0"
+  }
+}
