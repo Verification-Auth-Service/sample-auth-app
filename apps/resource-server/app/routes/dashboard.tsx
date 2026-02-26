@@ -15,15 +15,18 @@ export default function Dashboard() {
   const { user } = useLoaderData<typeof loader>();
 
   return (
-    <main style={{ maxWidth: 900, margin: "2rem auto", padding: "1rem" }}>
-      <h1 style={{ marginBottom: 8 }}>Dashboard</h1>
-      <p style={{ color: "#475569" }}>
+    <main>
+      <h1>Dashboard</h1>
+      <p>
         ようこそ <strong>{user.displayName}</strong> さん。ここはログイン必須ページです。
       </p>
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 12 }}>
+      <div>
         <Link to="/">Home</Link>
+        {" | "}
         <a href="/me">GET /me</a>
+        {" | "}
         <a href="/api/protected">GET /api/protected</a>
+        {" "}
         <Form method="post" action="/logout">
           <button type="submit">Logout</button>
         </Form>

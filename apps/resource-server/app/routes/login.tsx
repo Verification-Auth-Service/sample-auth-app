@@ -4,7 +4,11 @@ import { authenticateWithPassword, ensureDemoUser, getLoginHint } from "~/servic
 import { commitSession, getLoggedInUser, getSession } from "~/services/session.server";
 
 function normalizeNextPath(value: string | null) {
-  return value && value.startsWith("/") ? value : "/dashboard";
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return "/dashboard";
+  }
+
+  return value;
 }
 
 export function meta({}: MetaArgs) {
@@ -63,63 +67,28 @@ export default function Login() {
   const username = actionData?.values?.username ?? loaderData.hint.username;
 
   return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: "1rem" }}>
-      <section
-        style={{
-          width: "100%",
-          maxWidth: 420,
-          background: "#ffffff",
-          border: "1px solid #dbeafe",
-          borderRadius: 20,
-          padding: "1.25rem",
-          boxShadow: "0 10px 30px rgba(15, 23, 42, 0.08)",
-        }}
-      >
-        <h1 style={{ marginTop: 0, marginBottom: 8 }}>Login</h1>
-        <p style={{ marginTop: 0, color: "#475569", fontSize: 14 }}>
-          最小構成のデモログインです。初期値: <code>{loaderData.hint.username}</code> / <code>password</code>
-        </p>
-        {actionData?.error ? (
-          <p style={{ color: "#b91c1c", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "0.5rem" }}>
-            {actionData.error}
-          </p>
-        ) : null}
-        <Form method="post" style={{ display: "grid", gap: 12 }}>
-          <input type="hidden" name="next" value={next} />
-          <label style={{ display: "grid", gap: 6 }}>
-            <span>Username</span>
-            <input
-              name="username"
-              defaultValue={username}
-              autoComplete="username"
-              style={{ border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.7rem" }}
-            />
-          </label>
-          <label style={{ display: "grid", gap: 6 }}>
-            <span>Password</span>
-            <input
-              name="password"
-              type="password"
-              defaultValue="password"
-              autoComplete="current-password"
-              style={{ border: "1px solid #cbd5e1", borderRadius: 10, padding: "0.7rem" }}
-            />
-          </label>
-          <button
-            type="submit"
-            style={{
-              border: 0,
-              borderRadius: 10,
-              padding: "0.75rem 0.9rem",
-              background: "#0f172a",
-              color: "#fff",
-              fontWeight: 600,
-            }}
-          >
-            Sign in
-          </button>
-        </Form>
-      </section>
+    <main>
+      <h1>Login</h1>
+      <p>
+        最小構成のデモログイン 初期値: <code>{loaderData.hint.username}</code> / <code>password</code>
+      </p>
+      {actionData?.error ? <p>{actionData.error}</p> : null}
+      <Form method="post">
+        <input type="hidden" name="next" value={next} />
+        <label>
+          <span>Username</span>
+          <br />
+          <input name="username" defaultValue={username} autoComplete="username" />
+        </label>
+        <br />
+        <label>
+          <span>Password</span>
+          <br />
+          <input name="password" type="password" defaultValue="password" autoComplete="current-password" />
+        </label>
+        <br />
+        <button type="submit">Sign in</button>
+      </Form>
     </main>
   );
 }
