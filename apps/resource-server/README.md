@@ -19,6 +19,31 @@
 pnpm -C apps/resource-server dev
 ```
 
+## テスト
+
+以下のコマンドで `apps/resource-server` のユニットテストを実行できます。
+
+```bash
+pnpm -C apps/resource-server test -- --run
+```
+
+主なテスト対象:
+
+- `app/services/oauth.server.spec.ts`
+  - 認可コードのワンタイム性
+  - `redirect_uri` 不一致時の拒否
+  - アクセストークン検証
+  - リフレッシュトークンによる再発行
+- `app/routes/oauth.token.spec.ts`
+  - クライアント認証失敗時の `invalid_client`
+  - `authorization_code` / `refresh_token` の成功系
+  - 未対応 `grant_type` の拒否
+- `app/routes/api.protected.spec.ts`
+  - Bearer 優先認証
+  - Bearer 不正時の `invalid_token`
+  - Session フォールバック
+  - 未認証時 `unauthorized`
+
 ## DB（apps/resource-server 用）
 
 `resource-server` のログイン認証は DB（MySQL / Prisma）を使用します。`apps/packages/db-resource` の Prisma Client を使用します（`auth-app` 用と分離）。
