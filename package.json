@@ -8,8 +8,11 @@
   "packageManager": "pnpm@10.26.0",
   "scripts": {
     "dev": "pnpm -C apps/auth-app dev",
+    "dev:resource-server": "pnpm -C apps/resource-server dev",
     "build": "pnpm -C apps/auth-app build",
+    "build:resource-server": "pnpm -C apps/resource-server build",
     "start": "pnpm -C apps/auth-app start",
+    "start:resource-server": "pnpm -C apps/resource-server start",
     "test": "pnpm -C apps/auth-app test"
   }
 }
