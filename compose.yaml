@@ -50,9 +50,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      resource-server-sample:
+        condition: service_started
     environment:
       DATABASE_URL: mysql://app:app@db:3306/app
       PORT: "5173"
+      RESOURCE_SERVER_BASE_URL: http://resource-server-sample:5174
+      RESOURCE_OAUTH_AUTHORIZE_URL: http://localhost:5174/oauth/authorize
       CHOKIDAR_USEPOLLING: "true"
       CHOKIDAR_INTERVAL: "100"
     volumes:
