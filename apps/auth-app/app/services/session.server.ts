@@ -7,6 +7,12 @@ export type SessionData = {
   "github:access_token"?: string;
   "github:refresh_token"?: string;
   "github:auth_type"?: "oauth_app" | "github_app";
+  "resource:oauth:state"?: string;
+  "resource:oauth:verifier"?: string;
+  "resource:oauth:createdAt"?: number;
+  "resource:access_token"?: string;
+  "resource:refresh_token"?: string;
+  "resource:scope"?: string;
   [key: string]: unknown;
 };
 
