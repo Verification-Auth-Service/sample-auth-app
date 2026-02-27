@@ -58,6 +58,17 @@ GitHub App（User Access Token）用
 - `GITHUB_APP_SCOPE`（省略可）
 - `GITHUB_APP_REDIRECT_URI`（省略可。`APP_ORIGIN` から組み立てる場合は不要）
 
+Resource Server 連携用
+
+- `RESOURCE_SERVER_BASE_URL`（省略可。既定: `http://localhost:5174`）
+- `RESOURCE_OAUTH_AUTHORIZE_URL`（省略可。既定: `${RESOURCE_SERVER_BASE_URL}/oauth/authorize`）
+- `RESOURCE_OAUTH_TOKEN_URL`（省略可。既定: `${RESOURCE_SERVER_BASE_URL}/oauth/token`）
+- `RESOURCE_PROTECTED_API_URL`（省略可。既定: `${RESOURCE_SERVER_BASE_URL}/api/protected`）
+- `RESOURCE_OAUTH_CLIENT_ID`（省略可。既定: `sample-client`）
+- `RESOURCE_OAUTH_CLIENT_SECRET`（省略可。既定: `sample-secret`）
+- `RESOURCE_OAUTH_SCOPE`（省略可。既定: `read`）
+- `RESOURCE_OAUTH_REDIRECT_URI`（省略可。既定: `http://localhost:5173/auth/resource/callback`）
+
 `Sign Up with GitHub (GitHub App)` で private repository を取得するには、少なくとも以下が必要です。
 
 - `GITHUB_APP_SCOPE` に `repo read:user` を含める（例: `GITHUB_APP_SCOPE=repo read:user`）
@@ -92,9 +103,22 @@ GITHUB_APP_TOKEN_URL=https://github.com/login/oauth/access_token
 GITHUB_APP_SCOPE=repo read:user
 # GITHUB_APP_REDIRECT_URI=http://localhost:5173/auth/github-app/callback
 
+RESOURCE_SERVER_BASE_URL=http://localhost:5174
+RESOURCE_OAUTH_CLIENT_ID=sample-client
+RESOURCE_OAUTH_CLIENT_SECRET=sample-secret
+# RESOURCE_OAUTH_REDIRECT_URI=http://localhost:5173/auth/resource/callback
+# RESOURCE_OAUTH_SCOPE=read
+
 APP_ORIGIN=http://localhost:5173
 REDIRECT_URI=http://localhost:5173 /auth/github/callback
 SESSION_SECRET=YOUR_SESSION_SECRET
 ```
 
 SESSION_SECRETはopenssl rand -base64 48で生成可能
+
+## Resource Server 連携の動作確認
+
+1. `resource-server` にログイン（`http://localhost:5174/login`）
+1. `auth-app` の `/signup` から `Connect Resource Server` を押下
+1. 認可画面で `Authorize` を押下
+1. `/resourceinfo` に保護APIレスポンスが表示される
