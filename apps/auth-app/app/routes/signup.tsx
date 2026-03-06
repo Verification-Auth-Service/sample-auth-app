@@ -20,6 +20,11 @@ export default function Signup() {
             Sign Up with GitHub App
           </a>
         </div>
+        <div>
+          <a href="/auth/resource" className="inline-block rounded bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-500">
+            Connect Resource Server
+          </a>
+        </div>
       </div>
     </main>
   );

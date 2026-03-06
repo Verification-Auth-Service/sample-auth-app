@@ -1,9 +1,9 @@
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "vitest/config";
+import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-export default defineConfig({
+const config = {
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
   ssr: {
     external: ["@prisma/client", "@prisma/adapter-mariadb", ".prisma/client"],
@@ -11,4 +11,6 @@ export default defineConfig({
   test: {
     exclude: ["**/.react-router/**", "**/node_modules/**"],
   },
-});
+};
+
+export default defineConfig(config);
