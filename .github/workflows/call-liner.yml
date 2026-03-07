@@ -1,0 +1,70 @@
+name: call-liner-sample-auth-app
+
+on:
+  pull_request:
+    paths:
+      - "apps/auth-app/**"
+      - "apps/resource-server/**"
+      - "call-liner.ci.json"
+      - ".github/workflows/call-liner.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/auth-app/**"
+      - "apps/resource-server/**"
+      - "call-liner.ci.json"
+      - ".github/workflows/call-liner.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  call-liner:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sample-auth-app
+        uses: actions/checkout@v4
+        with:
+          path: sample-auth-app
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            sample-auth-app/pnpm-lock.yaml
+            call-liner/pnpm-lock.yaml
+
+      - name: Checkout call-liner
+        uses: actions/checkout@v4
+        with:
+          repository: Verification-Auth-Service/call-liner
+          path: call-liner
+          token: ${{ secrets.CI_REPO_READ_TOKEN != '' && secrets.CI_REPO_READ_TOKEN || github.token }}
+
+      - name: Install sample-auth-app dependencies
+        working-directory: sample-auth-app
+        run: pnpm install --frozen-lockfile
+
+      - name: Install call-liner workspace
+        working-directory: call-liner
+        run: pnpm install --frozen-lockfile
+
+      - name: Run call-liner CI
+        working-directory: call-liner
+        run: pnpm --filter call-liner ci -- --config ../sample-auth-app/call-liner.ci.json
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: call-liner-artifacts
+          path: sample-auth-app/artifacts/call-liner
