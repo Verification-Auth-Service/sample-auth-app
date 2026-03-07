@@ -60,7 +60,7 @@ jobs:
 
       - name: Run call-liner CI
         working-directory: call-liner
-        run: pnpm --filter call-liner run ci -- --config ../sample-auth-app/call-liner.ci.json
+        run: pnpm --filter call-liner run ci --config ../sample-auth-app/call-liner.ci.json
 
       - name: Upload artifacts
         if: always()
