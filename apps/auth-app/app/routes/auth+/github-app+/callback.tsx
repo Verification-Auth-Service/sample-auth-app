@@ -216,6 +216,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     });
   }
 
+  session.unset("oauth:state");
+  session.unset("oauth:verifier");
+  session.unset("oauth:createdAt");
+
   session.set("github:access_token", accessToken);
   if (refreshToken) session.set("github:refresh_token", refreshToken);
   session.set("github:auth_type", "github_app");

@@ -13,6 +13,7 @@ const originalEnv = { ...process.env };
 type SessionLike = {
   get: (key: string) => unknown;
   set: (key: string, value: unknown) => void;
+  unset: (key: string) => void;
 };
 
 function sessionFrom(values: Record<string, unknown>): SessionLike {
@@ -20,6 +21,9 @@ function sessionFrom(values: Record<string, unknown>): SessionLike {
     get: (key: string) => values[key],
     set: (key: string, value: unknown) => {
       values[key] = value;
+    },
+    unset: (key: string) => {
+      delete values[key];
     },
   };
 }
@@ -177,7 +181,8 @@ describe("auth+/github+/callback", () => {
   });
 
   it("成功時はgithubinfoへリダイレクトし、セッションにトークンを保存する", async () => {
-    vi.mocked(getSession).mockResolvedValue(sessionFrom({ "oauth:state": "state1", "oauth:verifier": "verifier1" }) as never);
+    const sessionValues: Record<string, unknown> = { "oauth:state": "state1", "oauth:verifier": "verifier1", "oauth:createdAt": Date.now() };
+    vi.mocked(getSession).mockResolvedValue(sessionFrom(sessionValues) as never);
 
     vi.stubGlobal(
       "fetch",
@@ -195,5 +200,10 @@ describe("auth+/github+/callback", () => {
     const url = getLocationUrl(response);
     expect(url.pathname).toBe("/githubinfo");
     expect(response.headers.get("Set-Cookie")).toBe("cookie=1; Path=/");
+    expect(sessionValues["github:access_token"]).toBe("abcdef123456");
+    expect(sessionValues["github:auth_type"]).toBe("oauth_app");
+    expect(sessionValues["oauth:state"]).toBeUndefined();
+    expect(sessionValues["oauth:verifier"]).toBeUndefined();
+    expect(sessionValues["oauth:createdAt"]).toBeUndefined();
   });
 });
