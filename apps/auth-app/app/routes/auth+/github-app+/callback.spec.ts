@@ -22,6 +22,7 @@ const originalEnv = { ...process.env };
 type SessionLike = {
   get: (key: string) => unknown;
   set: (key: string, value: unknown) => void;
+  unset: (key: string) => void;
 };
 
 function sessionFrom(values: Record<string, unknown>): SessionLike {
@@ -29,6 +30,9 @@ function sessionFrom(values: Record<string, unknown>): SessionLike {
     get: (key: string) => values[key],
     set: (key: string, value: unknown) => {
       values[key] = value;
+    },
+    unset: (key: string) => {
+      delete values[key];
     },
   };
 }
