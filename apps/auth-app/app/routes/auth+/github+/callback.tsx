@@ -131,9 +131,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     });
   }
 
-  session.unset("oauth:state");
-  session.unset("oauth:verifier");
-  session.unset("oauth:createdAt");
   session.set("github:access_token", accessToken);
   session.set("github:auth_type", "oauth_app");
   const setCookie = await commitSession(session, { maxAge: 60 * 60 * 24 * 14 });
