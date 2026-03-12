@@ -215,10 +215,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
       code: "db_save_failed",
     });
   }
-
-  session.unset("oauth:state");
   session.unset("oauth:verifier");
   session.unset("oauth:createdAt");
+  session.unset("oauth:state");
 
   session.set("github:access_token", accessToken);
   if (refreshToken) session.set("github:refresh_token", refreshToken);
